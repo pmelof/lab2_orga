@@ -12,7 +12,7 @@ Patricia Melo Fuenzalida.
 
 /*DEFINICIONES*/
 #define TAM_PALABRA 32
-#define TAM_REGISTRO 32
+#define MAX_INSTRUCCIONES 100
 #define TOTAL_REGISTRO 32
 #define NO_EXISTE -99
 #define REG_NULO ""
@@ -22,7 +22,7 @@ Patricia Melo Fuenzalida.
 
 typedef struct Registro
 {
-	char nombre[TAM_REGISTRO];
+	char nombre[TAM_PALABRA];
 	int valor;
 }Registro;
 
@@ -45,6 +45,7 @@ typedef struct Instruccion
 void quitarSaltoLinea(char *frase);
 void iniciarRegistros(Registro* registros);
 int buscarRegistro(char* reg, Registro* registros);
+void mostrarRegistros(Registro* registros);
 Instruccion* crearInstruccion(int index, char* nombre, Registro rd, Registro rs, Registro rt, int imm, char* label);
 Instruccion* insertarInstruccion(Instruccion* lista, int index, char* nombre, Registro rd, Registro rs, Registro rt, int imm, char* label);
 void mostrarLista(Instruccion* lista);
