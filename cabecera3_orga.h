@@ -40,6 +40,13 @@ typedef struct Instruccion
 }Instruccion;
 
 
+typedef struct Traza
+{
+	int ciclo;
+	Instruccion* instruccion;
+}Traza;
+
+
 /*FUNCIONES*/
 
 void quitarSaltoLinea(char *frase);
@@ -56,3 +63,8 @@ void separarLwOSw(Registro* registros, Instruccion* lista, int index, char* nomb
 Instruccion* leerEntrada(char* nombre, Registro* registros, Instruccion* lista);
 void ejecutarInstrucciones(Instruccion *lista, Registro* registros);
 
+int agregarInstruccion(Instruccion inst, Instruccion* lista, int fila);
+
+Instruccion* realizarSalto(Instruccion* indice, Instruccion* lista);
+Traza* generarTraza(Instruccion* lista, Registro* registros, Traza *t);
+void mostrarTraza(Traza* t);
