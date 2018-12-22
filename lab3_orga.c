@@ -8,12 +8,14 @@ int Desplazamiento=0;
 int *sp;
 Instruccion *ra;
 Instruccion *NOP;
+Hazard hazards[MAX_INSTRUCCIONES];
 
 
 Instruccion* inicializarNOP()
 {
 	Instruccion* nuevo = (Instruccion*)malloc(sizeof(Instruccion));
 	strcpy(nuevo->nombre, "NOP");
+	nuevo->index = NO_EXISTE;
 	//no es necesario inicializar los registros.
 	nuevo->imm = NO_EXISTE;
 	strcpy(nuevo->label, "");
@@ -594,7 +596,7 @@ Instruccion* realizarSalto(Instruccion* indice, Instruccion* lista)
 
 Traza* generarTraza(Instruccion* lista, Registro* registros)
 {
-	int ciclos=0, indT=0;
+	int ciclos=0, indT=0, indexH=0;
 	Instruccion* indice = lista;
 	Traza *t = (Traza*)malloc(sizeof(Traza)*MAX_INSTRUCCIONES);
 
@@ -604,12 +606,25 @@ Traza* generarTraza(Instruccion* lista, Registro* registros)
 			indice = indice->sgte;
 			continue;
 		}
-		/*
-		hazard.
-		*/
 		t[indT].ciclo = ciclos;
 		t[indT].instruccion = indice;
 		t[indT].valido = 1;
+
+		if (indT>1)
+		{
+			if (strcmp(t[indT-1].instruccion->rd.nombre, t[indT].instruccion->rs.nombre)==0
+				|| strcmp(t[indT-1].instruccion->rd.nombre, t[indT].instruccion->rt.nombre)==0)
+			{
+				hazards[indexH].ciclo = ciclos;
+				hazards[indexH].indexInstruccion = t[indT].instruccion->index;
+				hazards[indexH].tipo = 0; //de tipo dato.
+				indexH++;
+			}
+		}
+		/*
+		hazard.
+		*/
+		
 		if (indT >=2)	// puedo ejecutar.
 		{
 			Instruccion* p;

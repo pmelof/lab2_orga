@@ -47,6 +47,13 @@ typedef struct Traza
 	Instruccion* instruccion;
 }Traza;
 
+typedef struct Hazard
+{
+	int ciclo;
+	int indexInstruccion;
+	int tipo;	//0 si es de control, 1 si es de datos.	
+}Hazard;
+
 
 /*FUNCIONES*/
 
