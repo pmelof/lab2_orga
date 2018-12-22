@@ -7,84 +7,18 @@ int* Arreglo;
 int Desplazamiento=0;
 int *sp;
 Instruccion *ra;
-Instruccion mCiclos[MAX_INSTRUCCIONES][5];	//matriz de ciclos.
-Instruccion NOP;
-
-/*
-				IF ID EXE MEM WB
-instrucciones
-	...
-*/
+Instruccion *NOP;
 
 
-void iniciarMatrizCiclos()
+Instruccion* inicializarNOP()
 {
-	int i, j;
-	for (i = 0; i < MAX_INSTRUCCIONES; i++)
-	{
-		for (j = 0; j < 5; j++)
-		{
-			mCiclos[i][j].index = NO_EXISTE;
-			strcpy(mCiclos[i][j].nombre, "nada");
-			strcpy(mCiclos[i][j].rd.nombre, REG_NULO);
-			mCiclos[i][j].rd.valor = NO_EXISTE;
-			strcpy(mCiclos[i][j].rs.nombre, REG_NULO);
-			mCiclos[i][j].rs.valor = NO_EXISTE;
-			strcpy(mCiclos[i][j].rt.nombre, REG_NULO);
-			mCiclos[i][j].rt.valor = NO_EXISTE;
-			mCiclos[i][j].imm = NO_EXISTE;
-			strcpy(mCiclos[i][j].label, "");
-			mCiclos[i][j].sgte = NULL;
-		}
-	}
-}
-
-
-void mostrarMatrizCiclos()
-{
-	int i, j;
-	for (i = 0; i < MAX_INSTRUCCIONES; i++)
-	{
-		for (j = 0; j < 5; j++)
-		{
-		//	if (mCiclos[i][j].index != NO_EXISTE)
-				printf("%d-%s\t", mCiclos[i][j].index, mCiclos[i][j].nombre);
-		}
-		//if (mCiclos[i][j].index != NO_EXISTE)
-			printf("\n");
-	}
-}
-
-
-void copiarInstruccion(int i, int j, Instruccion instruc)
-{
-	mCiclos[i][j].index = instruc.index;
-	strcpy(mCiclos[i][j].nombre, instruc.nombre);
-	strcpy(mCiclos[i][j].rd.nombre, instruc.rd.nombre);
-	mCiclos[i][j].rd.valor = instruc.rd.valor;
-	strcpy(mCiclos[i][j].rs.nombre, instruc.rs.nombre);
-	mCiclos[i][j].rs.valor = instruc.rs.valor;
-	strcpy(mCiclos[i][j].rt.nombre, instruc.rt.nombre);
-	mCiclos[i][j].rt.valor = instruc.rt.valor;
-	mCiclos[i][j].imm = instruc.imm;
-	strcpy(mCiclos[i][j].label, instruc.label);
-	mCiclos[i][j].sgte = instruc.sgte;
-}
-
-
-void agregarNOP(int i, int j)
-{
-	mCiclos[i][j].index = NO_EXISTE;
-	strcpy(mCiclos[i][j].nombre, "NOP");
-	strcpy(mCiclos[i][j].rd.nombre, REG_NULO);
-	mCiclos[i][j].rd.valor = NO_EXISTE;
-	strcpy(mCiclos[i][j].rs.nombre, REG_NULO);
-	mCiclos[i][j].rs.valor = NO_EXISTE;
-	strcpy(mCiclos[i][j].rt.nombre, REG_NULO);
-	mCiclos[i][j].rt.valor = NO_EXISTE;
-	mCiclos[i][j].imm = NO_EXISTE;
-	strcpy(mCiclos[i][j].label, "");
-	mCiclos[i][j].sgte = NULL;
+	Instruccion* nuevo = (Instruccion*)malloc(sizeof(Instruccion));
+	strcpy(nuevo->nombre, "NOP");
+	//no es necesario inicializar los registros.
+	nuevo->imm = NO_EXISTE;
+	strcpy(nuevo->label, "");
+	nuevo->sgte = NULL;
+	return nuevo;
 }
 
 void quitarSaltoLinea(char *frase)
@@ -588,7 +522,6 @@ void ejecutarPrograma(Instruccion* lista, Registro* registros)
 	while (indice != NULL)
 	{
 		ejecutarInstrucciones(indice, registros);
-		//fila = agregarInstruccion(*indice, lista, fila);
 		printf("%s\n", indice->nombre);
 
 		if (strcmp(indice->nombre, "beq")==0 || strcmp(indice->nombre, "bne")==0 || 
@@ -620,7 +553,6 @@ void ejecutarPrograma(Instruccion* lista, Registro* registros)
 			indice->rd.nombre, indice->rd.valor, indice->rs.nombre, indice->rs.valor, indice->rt.nombre, 
 			indice->rt.valor, indice->imm, indice->label);*/
 		indice = indice->sgte;
-	//	fila++;
 	}
 	printf("\nFIN PROGRAMA.\n\n");
 }
@@ -650,101 +582,87 @@ Instruccion* realizarSalto(Instruccion* indice, Instruccion* lista)
 		{
 			indice = ra;
 		}
-		i = indice->rs.valor;
-		indice = buscarIndex(lista, i);		//salta a la dirección que contenga rs.
+		else
+		{
+			i = indice->rs.valor;
+			indice = buscarIndex(lista, i);		//salta a la dirección que contenga rs.
+		}
 	}
 	return indice;
 }
 
 
-Traza* generarTraza(Instruccion* lista, Registro* registros, Traza *t)
+Traza* generarTraza(Instruccion* lista, Registro* registros)
 {
 	int ciclos=0, indT=0;
 	Instruccion* indice = lista;
-	t = (Traza*)malloc(sizeof(Traza)*MAX_INSTRUCCIONES);
+	Traza *t = (Traza*)malloc(sizeof(Traza)*MAX_INSTRUCCIONES);
 
-	while (indice != NULL)
+	while (indice != NULL && indT < MAX_INSTRUCCIONES)
 	{
+		if (strcmp(indice->nombre, "")==0) {
+			indice = indice->sgte;
+			continue;
+		}
 		/*
 		hazard.
 		*/
 		t[indT].ciclo = ciclos;
 		t[indT].instruccion = indice;
+		t[indT].valido = 1;
 		if (indT >=2)	// puedo ejecutar.
 		{
-			ejecutarInstrucciones(indice, registros);
-			indice = realizarSalto(indice, lista);
+			Instruccion* p;
+			Instruccion* p2;
+
+			p = t[indT-2].instruccion;
+			ejecutarInstrucciones(p, registros);
+			p2 = realizarSalto(p, lista);
+			if (p != p2) 
+			{
+				indice = p2;
+				if (strcmp(p->nombre, "beq")==0 || strcmp(p->nombre, "bne")==0 || 
+				strcmp(p->nombre, "blt")==0 || strcmp(p->nombre, "bgt")==0)
+				{
+					t[indT-1].instruccion = NOP;
+					t[indT].instruccion = NOP;
+				}
+				else if (strcmp(p->nombre, "j")==0 || strcmp(p->nombre, "jal")==0)
+				{
+					t[indT-1].instruccion = NOP;
+					t[indT].instruccion = NOP;
+					ciclos--;
+					t[indT].valido = 0;
+				}
+				else if (strcmp(p->nombre, "jr")==0)
+				{
+					t[indT-1].instruccion = NOP;
+				}
+				else
+					printf("ERROR, NO DEBERÍA ENTRAR AQUI.");
+			}
 		}
 		indice = indice->sgte;
 		indT++;
 		ciclos++;
 	}
+	t[indT].instruccion = NULL;
 	return t;
 }
 
 
 void mostrarTraza(Traza* t)
 {
-	int i;
-	for (i = 0; i < MAX_INSTRUCCIONES; i++)
+	int i=0;
+	while (t[i].instruccion != NULL)
 	{
-		printf("c:%d - %d - %s\n", t->ciclo, t->instruccion->index, t->instruccion->nombre);
-	}
-}
-
-/*
-int agregarInstruccion(Instruccion inst, Instruccion* lista, int fila)
-{
-	//VER CASO EN QUE SE SALTE A LA PRIMERA INSTRUCCIÓN.
-
-	if (inst.index == 0)	
-	{
-		//primera instrucción, se guarda sin problemas.
-		copiarInstruccion(0, 0, inst);	//IF
-		copiarInstruccion(1, 1, inst);	//ID
-		copiarInstruccion(2, 2, inst);	//EXE
-		copiarInstruccion(3, 3, inst);	//MEM
-		copiarInstruccion(4, 4, inst);	//WB
-	}
-	else
-	{
-		//buscar instrucción anterior.
-		Instruccion* anterior = buscarIndex(lista, inst.index-1);
-		
-		//ver si hay forwarding.
-		if (strcmp(anterior->rd.nombre, inst.rs.nombre)==0 || strcmp(anterior->rd.nombre, inst.rt.nombre)==0)
+		if (t[i].valido == 1)
 		{
-			if (strcmp(anterior->nombre, "sw")==0 || strcmp(anterior->nombre, "lw")==0)
-			{
-				copiarInstruccion(fila, 0, inst);
-				copiarInstruccion(fila+1, 1, inst);
-				agregarNOP(fila+2, 2);
-				agregarNOP(fila+3, 3);
-				agregarNOP(fila+4, 4);
-
-				copiarInstruccion(fila+1, 0, inst);
-				copiarInstruccion(fila+2, 1, inst);
-				copiarInstruccion(fila+3, 2, inst);
-				copiarInstruccion(fila+4, 3, inst);
-				copiarInstruccion(fila+5, 4, inst);
-				fila++;
-			}
-			else
-			{
-				copiarInstruccion(fila, 0, inst);
-				copiarInstruccion(fila+1, 1, inst);
-				copiarInstruccion(fila+2, 2, inst);
-				copiarInstruccion(fila+3, 3, inst);
-				copiarInstruccion(fila+4, 4, inst);
-			}
-			//ver después el caso en que sea beq.
+			printf("c:%d - %d - %s\n", t[i].ciclo, t[i].instruccion->index, t[i].instruccion->nombre);
 		}
-		
+		i++;
 	}
-	return fila;
 }
-*/
-
 
 
 int main(int argc, char const *argv[])
@@ -762,7 +680,7 @@ int main(int argc, char const *argv[])
 	Registro registros[TOTAL_REGISTRO];
 	iniciarRegistros(registros);
 	Traza *t;
-	iniciarMatrizCiclos();
+	NOP = inicializarNOP();
 	Instruccion* lista = NULL;
 	char entrada[TAM_PALABRA];
 //	char salida[TAM_PALABRA];
@@ -788,7 +706,7 @@ int main(int argc, char const *argv[])
 
 	ejecutarPrograma(lista, registros);
 	printf("-----------------------\n");
-	t = generarTraza(lista, registros, t);
+	t = generarTraza(lista, registros);
 	mostrarTraza(t);
 	printf("-----------------------\n");
 	mostrarRegistros(registros);

@@ -43,6 +43,7 @@ typedef struct Instruccion
 typedef struct Traza
 {
 	int ciclo;
+	int valido;	//0 si no es valido, 1 si lo es.
 	Instruccion* instruccion;
 }Traza;
 
@@ -66,5 +67,5 @@ void ejecutarInstrucciones(Instruccion *lista, Registro* registros);
 int agregarInstruccion(Instruccion inst, Instruccion* lista, int fila);
 
 Instruccion* realizarSalto(Instruccion* indice, Instruccion* lista);
-Traza* generarTraza(Instruccion* lista, Registro* registros, Traza *t);
+Traza* generarTraza(Instruccion* lista, Registro* registros);
 void mostrarTraza(Traza* t);
