@@ -30,6 +30,7 @@ typedef struct Registro
 typedef struct Instruccion
 {
 	int  index;
+	int nroInstruccion;
 	char nombre[TAM_PALABRA];
 	Registro rd;
 	Registro rs;
@@ -40,19 +41,24 @@ typedef struct Instruccion
 }Instruccion;
 
 
+typedef struct Hazard
+{
+	int ciclo;
+	int indexInstruccion;
+	int tipo;	//1 si es de control, 0 si es de datos.
+	int valido; 	//0 si no es valido, 1 si lo es.
+	char buffer[TAM_PALABRA];	
+}Hazard;
+
+
 typedef struct Traza
 {
 	int ciclo;
 	int valido;	//0 si no es valido, 1 si lo es.
 	Instruccion* instruccion;
+	int hd;
 }Traza;
 
-typedef struct Hazard
-{
-	int ciclo;
-	int indexInstruccion;
-	int tipo;	//0 si es de control, 1 si es de datos.	
-}Hazard;
 
 
 /*FUNCIONES*/
@@ -61,13 +67,13 @@ void quitarSaltoLinea(char *frase);
 void iniciarRegistros(Registro* registros);
 int buscarRegistro(char* reg, Registro* registros);
 void mostrarRegistros(Registro* registros);
-Instruccion* crearInstruccion(int index, char* nombre, Registro rd, Registro rs, Registro rt, int imm, char* label);
-Instruccion* insertarInstruccion(Instruccion* lista, int index, char* nombre, Registro rd, Registro rs, Registro rt, int imm, char* label);
+Instruccion* crearInstruccion(int index, int nroInstruccion, char* nombre, Registro rd, Registro rs, Registro rt, int imm, char* label);
+Instruccion* insertarInstruccion(Instruccion* lista, int index, int nroInstruccion, char* nombre, Registro rd, Registro rs, Registro rt, int imm, char* label);
 void mostrarLista(Instruccion* lista);
 int buscarLabel(Instruccion* lista, char* etiqueta);
 Instruccion* buscarIndex(Instruccion* lista, int i);
 void ejecutarPrograma(Instruccion* lista, Registro* registros);
-void separarLwOSw(Registro* registros, Instruccion* lista, int index, char* nombre, Registro rd, char* rt);
+void separarLwOSw(Registro* registros, Instruccion* lista, int index, int nroInstruccion, char* nombre, Registro rd, char* rt);
 Instruccion* leerEntrada(char* nombre, Registro* registros, Instruccion* lista);
 void ejecutarInstrucciones(Instruccion *lista, Registro* registros);
 
